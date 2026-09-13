@@ -1,6 +1,7 @@
 import { Card, Field, PageHead, Notice, Empty } from "@/components/ui";
 import { getSettings, listEvents, listCompanies } from "@/lib/queries";
-import { saveSettings, saveEvent, deleteEvent } from "@/app/actions";
+import { isProtected } from "@/lib/auth";
+import { saveSettings, saveEvent, deleteEvent, signOut } from "@/app/actions";
 import { EVENT_TYPES } from "@/config/company-blocks";
 import { today } from "@/lib/format";
 
@@ -94,6 +95,26 @@ export default async function SettingsPage() {
           <a className="btn btn-ghost btn-sm" href="/api/export" download="ussm-export.json">
             Exporter tout en JSON
           </a>
+        </Card>
+
+        <Card title="Accès">
+          {isProtected() ? (
+            <>
+              <p className="hint" style={{ marginTop: 0 }}>
+                L&apos;application est protégée par mot de passe (<span className="mono">APP_PASSWORD</span>).
+                La session dure un an sur cet appareil.
+              </p>
+              <form action={signOut}>
+                <button className="btn btn-ghost btn-sm" type="submit">Se déconnecter</button>
+              </form>
+            </>
+          ) : (
+            <Notice kind="block">
+              <strong>Aucun mot de passe défini.</strong> Pose la variable d&apos;environnement{" "}
+              <span className="mono">APP_PASSWORD</span> chez ton hébergeur avant toute mise en ligne :
+              sans elle, quiconque a l&apos;adresse peut lire et modifier tes données, export JSON compris.
+            </Notice>
+          )}
         </Card>
 
         <Card title="Garde-fous IA">

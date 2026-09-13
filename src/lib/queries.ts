@@ -337,3 +337,21 @@ export async function getPeerFilings(tickers: string[]) {
   }
   return out;
 }
+
+/** Open positions with everything the mobile review screen needs, in one pass. */
+export async function listPositionsForReview() {
+  const open = await db.select().from(S.positions).where(eq(S.positions.status, "open"));
+  const companies = await listCompanies();
+  const byId = new Map(companies.map((c) => [c.id, c]));
+
+  return Promise.all(open.map(async (position) => {
+    const company = byId.get(position.companyId)!;
+    const price = await getLatestPrice(position.companyId);
+    const invalidatorRows = await db.select().from(S.invalidators)
+      .where(and(eq(S.invalidators.scope, "thesis"), eq(S.invalidators.refId, position.thesisId)));
+    const reviews = await db.select().from(S.positionReviews)
+      .where(eq(S.positionReviews.positionId, position.id))
+      .orderBy(desc(S.positionReviews.date)).limit(1);
+    return { position, company, price, invalidators: invalidatorRows, lastReview: reviews[0] ?? null };
+  }));
+}

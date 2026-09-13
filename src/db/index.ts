@@ -1,22 +1,45 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import fs from "node:fs";
-import path from "node:path";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
 import * as schema from "./schema";
 
-const dbPath = process.env.DB_PATH ?? path.join(process.cwd(), "data", "ussm.db");
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+type Db = ReturnType<typeof drizzle<typeof schema>>;
 
-const globalForDb = globalThis as unknown as { __ussmDb?: ReturnType<typeof drizzle> };
+const globalForDb = globalThis as unknown as { __ussmDb?: Db };
 
-function create() {
-  const sqlite = new Database(dbPath);
-  sqlite.pragma("journal_mode = WAL");
-  sqlite.pragma("foreign_keys = ON");
-  return drizzle(sqlite, { schema });
+/**
+ * `prepare: false` is required behind a transaction-mode pooler (Neon's pooled
+ * endpoint, pgbouncer). `max: 1` keeps a serverless instance from opening one
+ * connection per request.
+ */
+function create(): Db {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error(
+      "DATABASE_URL n'est pas défini.\n" +
+        "  • En ligne : colle la chaîne de connexion Neon dans les variables d'environnement.\n" +
+        "  • En local : lance `npm run db:local`, puis reporte l'URL affichée dans .env.local.",
+    );
+  }
+  const sql = postgres(url, { prepare: false, max: 1, idle_timeout: 20 });
+  return drizzle(sql, { schema });
 }
 
-export const db = globalForDb.__ussmDb ?? create();
-if (process.env.NODE_ENV !== "production") globalForDb.__ussmDb = db;
+function resolve(): Db {
+  if (!globalForDb.__ussmDb) globalForDb.__ussmDb = create();
+  return globalForDb.__ussmDb;
+}
+
+/**
+ * Connexion paresseuse : rien ne s'ouvre à l'import. Le build de Next évalue
+ * les modules sans variables d'environnement, et une position ouverte ne doit
+ * pas dépendre de l'ordre d'import.
+ */
+export const db = new Proxy({} as Db, {
+  get(_target, prop, receiver) {
+    const instance = resolve() as unknown as Record<string | symbol, unknown>;
+    const value = Reflect.get(instance, prop, receiver);
+    return typeof value === "function" ? value.bind(instance) : value;
+  },
+});
 
 export * from "./schema";

@@ -10,6 +10,7 @@ const NAV = [
   { href: "/valuation", label: "Valuation", icon: "▦" },
   { href: "/thesis", label: "Thesis & AI Challenge", icon: "◈" },
   { href: "/positions", label: "Positions", icon: "▸" },
+  { href: "/review", label: "Revue rapide", icon: "◉" },
   { href: "/journal", label: "Journal & Learning", icon: "▪" },
 ];
 

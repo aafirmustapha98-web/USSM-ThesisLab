@@ -1,15 +1,15 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import fs from "node:fs";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import { migrate } from "drizzle-orm/postgres-js/migrator";
 import path from "node:path";
 
-const dbPath = process.env.DB_PATH ?? path.join(process.cwd(), "data", "ussm.db");
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+async function main() {
+  const url = process.env.DATABASE_URL;
+  if (!url) throw new Error("DATABASE_URL n'est pas défini.");
+  const sql = postgres(url, { max: 1 });
+  await migrate(drizzle(sql), { migrationsFolder: path.join(process.cwd(), "drizzle") });
+  await sql.end();
+  console.log("Base prête.");
+}
 
-const sqlite = new Database(dbPath);
-sqlite.pragma("journal_mode = WAL");
-const db = drizzle(sqlite);
-migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
-sqlite.close();
-console.log(`Base prête : ${dbPath}`);
+main().catch((e) => { console.error(e); process.exit(1); });

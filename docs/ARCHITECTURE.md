@@ -379,7 +379,7 @@ Métriques calculées dans le Journal, toutes dérivées, aucune saisie supplém
 2. **Formulaires déclaratifs**, générés depuis les schémas — sinon 14 catégories × N indicateurs deviennent ingérables.
 3. **Export et sauvegarde dès le premier jour** (JSON complet + CSV par entité). Toutes les données sont saisies à la main : elles sont irremplaçables.
 4. **Entités immuables** (`DecisionSnapshot`, `Thesis`, `ChallengeRun`, `JournalEntry`) : écriture unique, jamais d'UPDATE ni de DELETE.
-5. **Local d'abord.** Aucune dépendance réseau hors appels IA.
+5. **Accès protégé.** Mot de passe unique en middleware ; l'export JSON est derrière la même porte.
 
 ---
 

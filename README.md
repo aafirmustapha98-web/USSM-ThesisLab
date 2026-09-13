@@ -14,9 +14,14 @@ DATA → MY ANALYSIS → MY THESIS → AI CHALLENGE → DECISION → FOLLOW-UP �
 
 ## Démarrer
 
+L'application se déploie **depuis un navigateur**, sans terminal :
+suis [`docs/DEPLOIEMENT.md`](docs/DEPLOIEMENT.md) (Neon + Vercel, gratuit, ~25 min).
+
+En local, si tu as un environnement de développement :
+
 ```bash
 npm install
-npm run db:migrate     # crée data/ussm.db
+npm run db:local       # Postgres jetable, aucune installation requise
 npm run dev            # http://localhost:3000
 ```
 
@@ -24,11 +29,14 @@ npm run dev            # http://localhost:3000
 |---|---|
 | `npm run dev` | serveur de développement |
 | `npm run build` / `npm start` | build et exécution en production |
+| `npm run db:local` | Postgres de développement jetable (PGlite), une seule connexion à la fois |
 | `npm run db:generate` | régénère les migrations après modification du schéma |
 | `npm run db:migrate` | applique les migrations |
 | `npm run smoke` | déroule le workflow complet sur une base jetable et affiche l'état des portes |
 
-La base est un fichier unique — `data/ussm.db`. La sauvegarde, c'est le copier.
+Deux variables d'environnement, décrites dans [`.env.example`](.env.example) :
+`DATABASE_URL` (Postgres) et `APP_PASSWORD` (mot de passe d'accès — sans lui,
+l'application est ouverte à quiconque a l'adresse).
 Un export JSON complet est disponible dans **Réglages**.
 
 ## Les 8 pages
@@ -44,6 +52,9 @@ Un export JSON complet est disponible dans **Réglages**.
 | **Positions** | Suivi, revue par invalidateur, changement d'horizon tracé, clôture |
 | **Journal & Learning** | Instantanés gelés, calibration de la confiance, erreurs récurrentes |
 
+Plus **Revue rapide** (`/review`) : l'écran mobile pour mettre à jour un prix et répondre
+à ses invalidateurs. L'application s'ajoute à l'écran d'accueil (PWA), sans passer par un store.
+
 ## Ce que l'application ne fait jamais
 
 - Récupérer automatiquement les données de Trading Economics ou Finviz
@@ -56,6 +67,7 @@ Un export JSON complet est disponible dans **Réglages**.
 
 | Document | Contenu |
 |---|---|
+| [`docs/DEPLOIEMENT.md`](docs/DEPLOIEMENT.md) | Mise en ligne pas à pas depuis un navigateur |
 | [`docs/V1-SCOPE.md`](docs/V1-SCOPE.md) | Périmètre V1, réconciliation spec / architecture, pile technique |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architecture fonctionnelle : principes, décisions, modules, portes, niveaux d'IA |
 | [`docs/DATA-MODEL.md`](docs/DATA-MODEL.md) | Entités, champs, relations, dérivés, invariants |
@@ -74,8 +86,8 @@ Ajouter un indicateur ou une règle n'exige jamais de toucher un composant.
 
 ## Pile
 
-Next.js 15 (App Router, Server Actions) · TypeScript · SQLite + Drizzle · Tailwind CSS v4.
-Aucune dépendance réseau, aucun appel de modèle en V1.
+Next.js 15 (App Router, Server Actions) · TypeScript · Postgres + Drizzle · Tailwind CSS v4.
+Hébergement visé : Vercel + Neon. Aucun appel de modèle en V1.
 
 ## État
 

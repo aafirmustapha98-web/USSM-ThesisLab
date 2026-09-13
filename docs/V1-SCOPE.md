@@ -88,7 +88,7 @@ La spec (§30) demande d'intégrer l'IA **après** que la structure de données 
 | Couche | Choix | Raison |
 |---|---|---|
 | Framework | **Next.js 15, App Router, TypeScript** | Un seul processus, rendu serveur, Server Actions pour les mutations — pas d'API REST à écrire à la main |
-| Base | **SQLite** (`better-sqlite3`) + **Drizzle ORM** | Fichier local unique, sauvegarde = copie de fichier, schéma typé et migrable |
+| Base | **Postgres** (`postgres-js`) + **Drizzle ORM** | Hébergée (Neon) : sauvegardes automatiques, accessible depuis le téléphone et l'ordinateur. Un fichier SQLite ne survit pas à un hébergement serverless. En local, PGlite fournit un Postgres jetable sans installation. |
 | Style | **Tailwind CSS v4**, composants maison | Interface sobre orientée finance ; aucune librairie UI imposant son style |
 | Graphiques | **aucun en V1** | La spec demande explicitement peu de graphiques |
 | IA | adaptateur `src/lib/ai/` non branché | Intégration après validation de la structure (§30) |

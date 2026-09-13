@@ -617,3 +617,11 @@ export async function saveSettings(form: FormData) {
   }
   revalidatePath("/", "layout");
 }
+
+/* -------------------------------- session ------------------------------- */
+export async function signOut() {
+  const { cookies } = await import("next/headers");
+  const { SESSION_COOKIE } = await import("@/lib/auth");
+  (await cookies()).delete(SESSION_COOKIE);
+  redirect("/login");
+}

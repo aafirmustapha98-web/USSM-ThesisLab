@@ -1,4 +1,6 @@
-import { sqliteTable, text, integer, real, index } from "drizzle-orm/sqlite-core";
+import {
+  pgTable, text, integer, doublePrecision, boolean, jsonb, index,
+} from "drizzle-orm/pg-core";
 
 const now = () => new Date().toISOString();
 const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
@@ -7,19 +9,19 @@ const id = () => text("id").primaryKey().$defaultFn(() => crypto.randomUUID());
 /* Settings — singleton. Empty by default: the app enforces only the   */
 /* limits the user has declared himself (spec §19).                    */
 /* ------------------------------------------------------------------ */
-export const settings = sqliteTable("settings", {
+export const settings = pgTable("settings", {
   id: text("id").primaryKey().$defaultFn(() => "singleton"),
-  capital: real("capital"),
-  maxRiskPerTradePct: real("max_risk_per_trade_pct"),
-  maxOpenRiskPct: real("max_open_risk_pct"),
-  maxSectorPct: real("max_sector_pct"),
+  capital: doublePrecision("capital"),
+  maxRiskPerTradePct: doublePrecision("max_risk_per_trade_pct"),
+  maxOpenRiskPct: doublePrecision("max_open_risk_pct"),
+  maxSectorPct: doublePrecision("max_sector_pct"),
   updatedAt: text("updated_at").$defaultFn(now),
 });
 
 /* ------------------------------------------------------------------ */
 /* Companies                                                           */
 /* ------------------------------------------------------------------ */
-export const companies = sqliteTable("companies", {
+export const companies = pgTable("companies", {
   id: id(),
   ticker: text("ticker").notNull().unique(),
   name: text("name").notNull(),
@@ -36,14 +38,14 @@ export const companies = sqliteTable("companies", {
 /* ------------------------------------------------------------------ */
 /* Macro — observations, readings, geopolitics                         */
 /* ------------------------------------------------------------------ */
-export const macroObservations = sqliteTable(
+export const macroObservations = pgTable(
   "macro_observations",
   {
     id: id(),
     categoryCode: text("category_code").notNull(),
     indicatorCode: text("indicator_code").notNull(),
-    value: real("value"),
-    previous: real("previous"),
+    value: doublePrecision("value"),
+    previous: doublePrecision("previous"),
     unit: text("unit"),
     /* the period the data describes — never only the entry date */
     refDate: text("ref_date").notNull(),
@@ -58,21 +60,21 @@ export const macroObservations = sqliteTable(
   (t) => [index("macro_obs_idx").on(t.categoryCode, t.indicatorCode, t.refDate)],
 );
 
-export const macroReadings = sqliteTable("macro_readings", {
+export const macroReadings = pgTable("macro_readings", {
   id: id(),
   categoryCode: text("category_code").notNull(),
   date: text("date").notNull(),
   whatHappens: text("what_happens").notNull(),
   why: text("why").notNull(),
-  impacts: text("impacts", { mode: "json" }).$type<string[]>(),
-  uncertainties: text("uncertainties", { mode: "json" }).$type<string[]>(),
+  impacts: jsonb("impacts").$type<string[]>(),
+  uncertainties: jsonb("uncertainties").$type<string[]>(),
   /* favorable | neutre | defavorable — written by the user, never computed */
   diagnostic: text("diagnostic").notNull(),
   confidence: integer("confidence"),
   createdAt: text("created_at").$defaultFn(now),
 });
 
-export const marketReadings = sqliteTable("market_readings", {
+export const marketReadings = pgTable("market_readings", {
   id: id(),
   date: text("date").notNull(),
   /* bullish | bearish | neutral | transition */
@@ -83,7 +85,7 @@ export const marketReadings = sqliteTable("market_readings", {
   createdAt: text("created_at").$defaultFn(now),
 });
 
-export const geoEvents = sqliteTable("geo_events", {
+export const geoEvents = pgTable("geo_events", {
   id: id(),
   title: text("title").notNull(),
   date: text("date").notNull(),
@@ -93,14 +95,14 @@ export const geoEvents = sqliteTable("geo_events", {
   probability: integer("probability"),
   potentialImpact: text("potential_impact"),
   /* oil | inflation | supply_chain | trade | dollar | rates | growth | sectors */
-  channels: text("channels", { mode: "json" }).$type<string[]>(),
+  channels: jsonb("channels").$type<string[]>(),
   createdAt: text("created_at").$defaultFn(now),
 });
 
 /* ------------------------------------------------------------------ */
 /* Sector — keyed by sector name, shared across its companies          */
 /* ------------------------------------------------------------------ */
-export const sectorReadings = sqliteTable("sector_readings", {
+export const sectorReadings = pgTable("sector_readings", {
   id: id(),
   sector: text("sector").notNull(),
   industry: text("industry"),
@@ -111,8 +113,8 @@ export const sectorReadings = sqliteTable("sector_readings", {
   capex: text("capex"),
   competition: text("competition"),
   regulation: text("regulation"),
-  catalysts: text("catalysts", { mode: "json" }).$type<string[]>(),
-  risks: text("risks", { mode: "json" }).$type<string[]>(),
+  catalysts: jsonb("catalysts").$type<string[]>(),
+  risks: jsonb("risks").$type<string[]>(),
   /* favorable | neutre | defavorable — the user's own conclusion */
   tailwind: text("tailwind").notNull(),
   justification: text("justification").notNull(),
@@ -123,7 +125,7 @@ export const sectorReadings = sqliteTable("sector_readings", {
 /* ------------------------------------------------------------------ */
 /* Company financials — THE single data-entry table                    */
 /* ------------------------------------------------------------------ */
-export const companyFilings = sqliteTable(
+export const companyFilings = pgTable(
   "company_filings",
   {
     id: id(),
@@ -135,56 +137,56 @@ export const companyFilings = sqliteTable(
     source: text("source").$defaultFn(() => "finviz"),
     sourceUrl: text("source_url"),
 
-    marketCap: real("market_cap"),
-    price: real("price"),
-    shares: real("shares"),
+    marketCap: doublePrecision("market_cap"),
+    price: doublePrecision("price"),
+    shares: doublePrecision("shares"),
 
-    revenue: real("revenue"),
-    eps: real("eps"),
-    ebitda: real("ebitda"),
-    ebit: real("ebit"),
-    netIncome: real("net_income"),
-    fcf: real("fcf"),
-    cfo: real("cfo"),
+    revenue: doublePrecision("revenue"),
+    eps: doublePrecision("eps"),
+    ebitda: doublePrecision("ebitda"),
+    ebit: doublePrecision("ebit"),
+    netIncome: doublePrecision("net_income"),
+    fcf: doublePrecision("fcf"),
+    cfo: doublePrecision("cfo"),
 
-    grossMargin: real("gross_margin"),
-    operatingMargin: real("operating_margin"),
-    netMargin: real("net_margin"),
-    ebitdaMargin: real("ebitda_margin"),
-    roa: real("roa"),
-    roe: real("roe"),
-    roic: real("roic"),
+    grossMargin: doublePrecision("gross_margin"),
+    operatingMargin: doublePrecision("operating_margin"),
+    netMargin: doublePrecision("net_margin"),
+    ebitdaMargin: doublePrecision("ebitda_margin"),
+    roa: doublePrecision("roa"),
+    roe: doublePrecision("roe"),
+    roic: doublePrecision("roic"),
 
-    totalDebt: real("total_debt"),
-    longTermDebt: real("long_term_debt"),
-    cash: real("cash"),
-    debtToEquity: real("debt_to_equity"),
-    interestCoverage: real("interest_coverage"),
-    currentRatio: real("current_ratio"),
-    quickRatio: real("quick_ratio"),
-    equity: real("equity"),
+    totalDebt: doublePrecision("total_debt"),
+    longTermDebt: doublePrecision("long_term_debt"),
+    cash: doublePrecision("cash"),
+    debtToEquity: doublePrecision("debt_to_equity"),
+    interestCoverage: doublePrecision("interest_coverage"),
+    currentRatio: doublePrecision("current_ratio"),
+    quickRatio: doublePrecision("quick_ratio"),
+    equity: doublePrecision("equity"),
 
-    revenueGrowth: real("revenue_growth"),
-    epsGrowth: real("eps_growth"),
-    ebitdaGrowth: real("ebitda_growth"),
-    netIncomeGrowth: real("net_income_growth"),
-    fcfGrowth: real("fcf_growth"),
+    revenueGrowth: doublePrecision("revenue_growth"),
+    epsGrowth: doublePrecision("eps_growth"),
+    ebitdaGrowth: doublePrecision("ebitda_growth"),
+    netIncomeGrowth: doublePrecision("net_income_growth"),
+    fcfGrowth: doublePrecision("fcf_growth"),
 
-    pe: real("pe"),
-    forwardPe: real("forward_pe"),
-    peg: real("peg"),
-    pb: real("pb"),
-    ps: real("ps"),
-    evEbitda: real("ev_ebitda"),
-    evEbit: real("ev_ebit"),
-    evFcf: real("ev_fcf"),
-    fcfYield: real("fcf_yield"),
-    dividendYield: real("dividend_yield"),
+    pe: doublePrecision("pe"),
+    forwardPe: doublePrecision("forward_pe"),
+    peg: doublePrecision("peg"),
+    pb: doublePrecision("pb"),
+    ps: doublePrecision("ps"),
+    evEbitda: doublePrecision("ev_ebitda"),
+    evEbit: doublePrecision("ev_ebit"),
+    evFcf: doublePrecision("ev_fcf"),
+    fcfYield: doublePrecision("fcf_yield"),
+    dividendYield: doublePrecision("dividend_yield"),
   },
   (t) => [index("filing_company_idx").on(t.companyId, t.period)],
 );
 
-export const companyReadings = sqliteTable("company_readings", {
+export const companyReadings = pgTable("company_readings", {
   id: id(),
   companyId: text("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
   filingId: text("filing_id").references(() => companyFilings.id),
@@ -200,7 +202,7 @@ export const companyReadings = sqliteTable("company_readings", {
   createdAt: text("created_at").$defaultFn(now),
 });
 
-export const valuationReadings = sqliteTable("valuation_readings", {
+export const valuationReadings = pgTable("valuation_readings", {
   id: id(),
   companyId: text("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
   filingId: text("filing_id").references(() => companyFilings.id),
@@ -208,7 +210,7 @@ export const valuationReadings = sqliteTable("valuation_readings", {
   /* attractive | reasonable | expensive | very_expensive */
   diagnostic: text("diagnostic").notNull(),
   justification: text("justification").notNull(),
-  peers: text("peers", { mode: "json" }).$type<string[]>(),
+  peers: jsonb("peers").$type<string[]>(),
   confidence: integer("confidence"),
   createdAt: text("created_at").$defaultFn(now),
 });
@@ -216,7 +218,7 @@ export const valuationReadings = sqliteTable("valuation_readings", {
 /* ------------------------------------------------------------------ */
 /* Thesis — immutable, versioned                                       */
 /* ------------------------------------------------------------------ */
-export const theses = sqliteTable(
+export const theses = pgTable(
   "theses",
   {
     id: id(),
@@ -232,9 +234,9 @@ export const theses = sqliteTable(
     why: text("why").notNull(),
     bullCase: text("bull_case").notNull(),
     bearCase: text("bear_case").notNull(),
-    catalysts: text("catalysts", { mode: "json" }).$type<string[]>(),
-    risks: text("risks", { mode: "json" }).$type<string[]>(),
-    uncertainties: text("uncertainties", { mode: "json" }).$type<string[]>(),
+    catalysts: jsonb("catalysts").$type<string[]>(),
+    risks: jsonb("risks").$type<string[]>(),
+    uncertainties: jsonb("uncertainties").$type<string[]>(),
     confidence: integer("confidence").notNull(),
     confidencePostChallenge: integer("confidence_post_challenge"),
     /* draft | active | revised | invalidated | closed */
@@ -244,7 +246,7 @@ export const theses = sqliteTable(
   (t) => [index("thesis_company_idx").on(t.companyId, t.version)],
 );
 
-export const invalidators = sqliteTable("invalidators", {
+export const invalidators = pgTable("invalidators", {
   id: id(),
   /* thesis | market */
   scope: text("scope").notNull(),
@@ -252,7 +254,7 @@ export const invalidators = sqliteTable("invalidators", {
   label: text("label").notNull(),
   metric: text("metric"),
   operator: text("operator"),
-  threshold: real("threshold"),
+  threshold: doublePrecision("threshold"),
   unit: text("unit"),
   persistence: text("persistence"),
   horizonDate: text("horizon_date"),
@@ -263,7 +265,7 @@ export const invalidators = sqliteTable("invalidators", {
   createdAt: text("created_at").$defaultFn(now),
 });
 
-export const invalidatorChecks = sqliteTable("invalidator_checks", {
+export const invalidatorChecks = pgTable("invalidator_checks", {
   id: id(),
   invalidatorId: text("invalidator_id").notNull().references(() => invalidators.id, { onDelete: "cascade" }),
   reviewId: text("review_id"),
@@ -276,7 +278,7 @@ export const invalidatorChecks = sqliteTable("invalidator_checks", {
 /* ------------------------------------------------------------------ */
 /* Challenge — resolution loop                                         */
 /* ------------------------------------------------------------------ */
-export const challengeRuns = sqliteTable("challenge_runs", {
+export const challengeRuns = pgTable("challenge_runs", {
   id: id(),
   thesisId: text("thesis_id").notNull().references(() => theses.id, { onDelete: "cascade" }),
   date: text("date").notNull(),
@@ -288,7 +290,7 @@ export const challengeRuns = sqliteTable("challenge_runs", {
   createdAt: text("created_at").$defaultFn(now),
 });
 
-export const objections = sqliteTable("objections", {
+export const objections = pgTable("objections", {
   id: id(),
   challengeRunId: text("challenge_run_id").notNull().references(() => challengeRuns.id, { onDelete: "cascade" }),
   /* the 10 axes of spec §16 */
@@ -309,7 +311,7 @@ export const objections = sqliteTable("objections", {
 /* ------------------------------------------------------------------ */
 /* Deterministic control findings                                      */
 /* ------------------------------------------------------------------ */
-export const ruleFindings = sqliteTable(
+export const ruleFindings = pgTable(
   "rule_findings",
   {
     id: id(),
@@ -328,35 +330,35 @@ export const ruleFindings = sqliteTable(
 /* ------------------------------------------------------------------ */
 /* Timing, prices, events                                              */
 /* ------------------------------------------------------------------ */
-export const technicalSetups = sqliteTable("technical_setups", {
+export const technicalSetups = pgTable("technical_setups", {
   id: id(),
   companyId: text("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
   date: text("date").notNull(),
   trend: text("trend"), // up | down | sideways
-  support: real("support"),
-  resistance: real("resistance"),
-  entry: real("entry"),
-  stop: real("stop"),
-  target: real("target"),
+  support: doublePrecision("support"),
+  resistance: doublePrecision("resistance"),
+  entry: doublePrecision("entry"),
+  stop: doublePrecision("stop"),
+  target: doublePrecision("target"),
   horizonDays: integer("horizon_days"),
   /* the user sets his own risk — never imposed (spec §19) */
-  maxLoss: real("max_loss"),
-  eventRiskReviewed: integer("event_risk_reviewed", { mode: "boolean" }).$defaultFn(() => false),
+  maxLoss: doublePrecision("max_loss"),
+  eventRiskReviewed: boolean("event_risk_reviewed").$defaultFn(() => false),
   eventRiskNote: text("event_risk_note"),
   notes: text("notes"),
   createdAt: text("created_at").$defaultFn(now),
 });
 
-export const priceObservations = sqliteTable("price_observations", {
+export const priceObservations = pgTable("price_observations", {
   id: id(),
   companyId: text("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
-  price: real("price").notNull(),
+  price: doublePrecision("price").notNull(),
   at: text("at").notNull(),
   /* manual | api — separated so a quote feed can be plugged in later */
   source: text("source").notNull().$defaultFn(() => "manual"),
 });
 
-export const events = sqliteTable("events", {
+export const events = pgTable("events", {
   id: id(),
   date: text("date").notNull(),
   /* earnings | cpi | pce | ppi | nfp | fomc | fed_speech | other */
@@ -371,16 +373,16 @@ export const events = sqliteTable("events", {
 /* ------------------------------------------------------------------ */
 /* Decision, frozen snapshot                                           */
 /* ------------------------------------------------------------------ */
-export const snapshots = sqliteTable("snapshots", {
+export const snapshots = pgTable("snapshots", {
   id: id(),
   companyId: text("company_id").notNull(),
   date: text("date").notNull(),
   /* open_position | watchlist | reject | decision */
   trigger: text("trigger").notNull(),
-  payload: text("payload", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
 });
 
-export const decisions = sqliteTable("decisions", {
+export const decisions = pgTable("decisions", {
   id: id(),
   companyId: text("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
   date: text("date").notNull(),
@@ -396,7 +398,7 @@ export const decisions = sqliteTable("decisions", {
 /* ------------------------------------------------------------------ */
 /* Positions                                                           */
 /* ------------------------------------------------------------------ */
-export const positions = sqliteTable("positions", {
+export const positions = pgTable("positions", {
   id: id(),
   companyId: text("company_id").notNull().references(() => companies.id, { onDelete: "cascade" }),
   thesisId: text("thesis_id").notNull(),
@@ -404,22 +406,22 @@ export const positions = sqliteTable("positions", {
   setupId: text("setup_id"),
   horizon: text("horizon").notNull(),
   openedAt: text("opened_at").notNull(),
-  entry: real("entry").notNull(),
-  shares: real("shares").notNull(),
-  stopInitial: real("stop_initial").notNull(),
-  targetInitial: real("target_initial"),
-  stopCurrent: real("stop_current"),
+  entry: doublePrecision("entry").notNull(),
+  shares: doublePrecision("shares").notNull(),
+  stopInitial: doublePrecision("stop_initial").notNull(),
+  targetInitial: doublePrecision("target_initial"),
+  stopCurrent: doublePrecision("stop_current"),
   /* open | closed */
   status: text("status").notNull().$defaultFn(() => "open"),
   closedAt: text("closed_at"),
-  exitPrice: real("exit_price"),
-  fees: real("fees"),
+  exitPrice: doublePrecision("exit_price"),
+  fees: doublePrecision("fees"),
   /* invalidator | stop | target | discretionary | event */
   exitReason: text("exit_reason"),
   createdAt: text("created_at").$defaultFn(now),
 });
 
-export const positionReviews = sqliteTable("position_reviews", {
+export const positionReviews = pgTable("position_reviews", {
   id: id(),
   positionId: text("position_id").notNull().references(() => positions.id, { onDelete: "cascade" }),
   date: text("date").notNull(),
@@ -427,18 +429,18 @@ export const positionReviews = sqliteTable("position_reviews", {
   thesisStatus: text("thesis_status").notNull(),
   confidence: integer("confidence"),
   note: text("note"),
-  stopChangedTo: real("stop_changed_to"),
+  stopChangedTo: doublePrecision("stop_changed_to"),
   stopChangeReason: text("stop_change_reason"),
   createdAt: text("created_at").$defaultFn(now),
 });
 
 /* A horizon change is never silent (spec §3) */
-export const horizonChanges = sqliteTable("horizon_changes", {
+export const horizonChanges = pgTable("horizon_changes", {
   id: id(),
   positionId: text("position_id").notNull().references(() => positions.id, { onDelete: "cascade" }),
   fromHorizon: text("from_horizon").notNull(),
   toHorizon: text("to_horizon").notNull(),
-  plPctAtChange: real("pl_pct_at_change"),
+  plPctAtChange: doublePrecision("pl_pct_at_change"),
   reason: text("reason").notNull(),
   date: text("date").notNull(),
 });
@@ -446,22 +448,22 @@ export const horizonChanges = sqliteTable("horizon_changes", {
 /* ------------------------------------------------------------------ */
 /* Journal & learning                                                  */
 /* ------------------------------------------------------------------ */
-export const journalEntries = sqliteTable("journal_entries", {
+export const journalEntries = pgTable("journal_entries", {
   id: id(),
   companyId: text("company_id").notNull(),
   positionId: text("position_id"),
   snapshotId: text("snapshot_id"),
   date: text("date").notNull(),
   horizon: text("horizon"),
-  resultPct: real("result_pct"),
-  resultR: real("result_r"),
+  resultPct: doublePrecision("result_pct"),
+  resultR: doublePrecision("result_r"),
   expected: text("expected"),
   happened: text("happened"),
   /* correct | partially_correct | incorrect */
   verdict: text("verdict").notNull(),
   mainError: text("main_error"),
   /* taxonomy of recurring errors (spec §25) */
-  errorTags: text("error_tags", { mode: "json" }).$type<string[]>(),
+  errorTags: jsonb("error_tags").$type<string[]>(),
   lesson: text("lesson").notNull(),
   createdAt: text("created_at").$defaultFn(now),
 });

@@ -183,3 +183,27 @@ details.acc > .acc-body { padding: 4px 16px 16px; border-top: 1px solid var(--li
 .src-link { font-size: 12px; color: var(--accent); text-decoration: none; }
 .src-link:hover { text-decoration: underline; }
 .insufficient { color: var(--ink-3); font-style: italic; font-size: 12px; }
+
+/* ------------------------- écran de revue mobile ------------------------- */
+.touch { min-height: 44px; }
+.touch-row { gap: 8px; }
+.touch-row > .input { flex: 1; }
+
+.inv-block { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); }
+
+.choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.choice {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 13px;
+  font-size: 13.5px; background: var(--panel); min-height: 44px; flex: 1 1 auto;
+  justify-content: center;
+}
+.choice:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.choice input { accent-color: var(--accent); width: 17px; height: 17px; }
+
+@media (max-width: 640px) {
+  .input, .select, .textarea { font-size: 16px; }  /* évite le zoom automatique iOS */
+  .btn { min-height: 44px; }
+  table.data th, table.data td { padding: 10px 10px; }
+  .main { padding-bottom: 96px; }
+}

@@ -10,18 +10,21 @@
     "setup": "npm run db:migrate",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
-    "smoke": "rm -f .smoke.db* && DB_PATH=.smoke.db tsx src/db/migrate.ts && DB_PATH=.smoke.db tsx scripts/smoke-workflow.ts"
+    "smoke": "node scripts/run-smoke.mjs",
+    "db:local": "node scripts/local-db.mjs",
+    "vercel-build": "npm run db:migrate && next build"
   },
   "dependencies": {
-    "better-sqlite3": "^11.8.1",
     "drizzle-orm": "^0.38.4",
     "next": "^15.5.25",
+    "postgres": "^3.4.9",
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
     "@tailwindcss/postcss": "^4.0.0",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.7",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",

@@ -12,4 +12,7 @@ data/
 next-env.d.ts
 .DS_Store
 *.tsbuildinfo
-.smoke.db*
+.localdb/
+.smokedb/
+.env*
+!.env.example
